@@ -2,14 +2,13 @@ package Kwiki::NewPage;
 use strict;
 use warnings;
 use Kwiki::Plugin '-Base';
-use Kwiki::Installer '-base';
+use mixin 'Kwiki::Installer';
 use Kwiki ':char_classes';
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
 const class_id => 'new_page';
 const class_title => 'New Page';
 const cgi_class => 'Kwiki::NewPage::CGI';
-const screen_template => 'new_page_screen.html';
 
 sub register {
     my $registry = shift;
@@ -84,10 +83,9 @@ __template/tt2/new_page_button_icon.html__
 <!-- BEGIN new_page_button_icon.html -->
 New
 <!-- END new_page_button_icon.html -->
-__template/tt2/new_page_screen.html__
-<!-- BEGIN new_page_screen.html -->
+__template/tt2/new_page_content.html__
+<!-- BEGIN new_page_content.html -->
 [% screen_title = 'Create New Page' %]
-[% INCLUDE kwiki_layout_begin.html %]
 <form method="post">
 <p>Enter a new page name:</p>
 <input type="text" size="20" maxlength="30" name="new_page_id" value="[% new_page_id %]" />
@@ -101,5 +99,4 @@ __template/tt2/new_page_screen.html__
 
 
 </pre>
-[% INCLUDE kwiki_layout_end.html %]
-<!-- END new_page_screen.html -->
+<!-- END new_page_content.html -->
