@@ -1,13 +1,10 @@
 package Kwiki::NewPage;
-use strict;
-use warnings;
-use Kwiki::Plugin '-Base';
+use Kwiki::Plugin -Base;
 use mixin 'Kwiki::Installer';
 use Kwiki ':char_classes';
-our $VERSION = '0.11';
+our $VERSION = '0.12';
 
 const class_id => 'new_page';
-const class_title => 'New Page';
 const cgi_class => 'Kwiki::NewPage::CGI';
 
 sub register {
@@ -16,13 +13,16 @@ sub register {
     $registry->add(toolbar => 'new_page_button', 
                    template => 'new_page_button.html',
                   );
+    $registry->add(prerequisite => 'edit');
 }
 
 sub new_page {
     my $error_msg = '';
     if ($self->cgi->button) {
         $error_msg = $self->check_page_name or do {
-            my $redirect = "action=edit&page_id=" . $self->cgi->new_page_id;
+            my $page_uri =
+              $self->pages->new_from_name($self->cgi->new_page_name)->uri;
+            my $redirect = "action=edit&page_name=$page_uri";
             return $self->redirect($redirect);
         }
     }
@@ -32,23 +32,22 @@ sub new_page {
 }
 
 sub check_page_name {
-    my $page_id = $self->cgi->new_page_id;
-    return "There is already a page named '$page_id'."
-      if $self->pages->new_page($page_id)->exists;
-    return "'$page_id' is an invalid page name. Can't contain spaces."
-      if $page_id =~ /\s/;
-    return "'$page_id' is an invalid page name. Invalid characters."
-      unless $page_id =~ /^[$WORD]+$/;
+    my $page_name = $self->cgi->new_page_name;
+    return "There is already a page named '$page_name'."
+      if $self->pages->new_from_name($page_name)->exists;
+    return "'$page_name' is an invalid page name. Can't contain spaces."
+      if $page_name =~ /\s/;
+    return "'$page_name' is an invalid page name. Invalid characters."
+      unless $page_name =~ /^[$ALPHANUM]+$/;
     return;
 }
 
 package Kwiki::NewPage::CGI;
-use Kwiki::CGI '-base';
+use Kwiki::CGI -base;
 
-cgi 'new_page_id';
+cgi new_page_name => -utf8;
 
 package Kwiki::NewPage;
-1;
 __DATA__
 
 =head1 NAME 
@@ -74,21 +73,16 @@ See http://www.perl.com/perl/misc/Artistic.html
 
 =cut
 __template/tt2/new_page_button.html__
-<!-- BEGIN new_page_button.html -->
 <a href="[% script_name %]?action=new_page" accesskey="N" title="Create New Page">
 [% INCLUDE new_page_button_icon.html %]
 </a>
-<!-- END new_page_button.html -->
 __template/tt2/new_page_button_icon.html__
-<!-- BEGIN new_page_button_icon.html -->
 New
-<!-- END new_page_button_icon.html -->
 __template/tt2/new_page_content.html__
-<!-- BEGIN new_page_content.html -->
 [% screen_title = 'Create New Page' %]
 <form method="post">
 <p>Enter a new page name:</p>
-<input type="text" size="20" maxlength="30" name="new_page_id" value="[% new_page_id %]" />
+<input type="text" size="20" maxlength="30" name="new_page_name" value="[% new_page_name %]" />
 <input type="submit" name="button" value="CREATE" />
 <br />
 <br />
@@ -99,4 +93,3 @@ __template/tt2/new_page_content.html__
 
 
 </pre>
-<!-- END new_page_content.html -->
